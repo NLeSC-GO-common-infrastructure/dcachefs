@@ -1,17 +1,13 @@
+import contextlib
 import fsspec
-
-from contextlib import contextmanager
-from copy import deepcopy
-from fsspec import register_implementation as _register_implementation
 
 from .dcachefs import dCacheFileSystem
 
 
-@contextmanager
-def register_implementation():
-    _registry = deepcopy(fsspec.registry)
-    _register_implementation('https', dCacheFileSystem, clobber=True)
+@contextlib.contextmanager
+def register_implementation(protocol='https'):
+    fsspec.register_implementation(protocol, dCacheFileSystem, clobber=True)
     try:
         yield
     finally:
-        fsspec.registry = _registry
+        fsspec.registry.target.pop(protocol)
