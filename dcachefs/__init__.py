@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import logging
 
 from .__version__ import __version__
+from .dcachefs import dCacheFileSystem
+from .register_implementation import register_implementation
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
