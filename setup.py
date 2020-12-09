@@ -18,7 +18,7 @@ with open('requirements.txt') as requirements_file:
 
 setup(
     name='dcachefs',
-    version=version,
+    version=version['__version__'],
     description="Python filesystem interface for dCache",
     long_description=readme + '\n\n',
     author="Francesco Nattino",
