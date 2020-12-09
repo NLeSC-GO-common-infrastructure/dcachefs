@@ -199,7 +199,10 @@ class dCacheFileSystem(AbstractFileSystem):
         path2 = self._strip_protocol(path2)
         data = dict(action='mv', destination=path2)
 
-        r = url.post(json=data, **self._update_authentication_kwargs(kwargs))
+        r = url.post(
+            json=data,
+            **self._update_authentication_kwargs(kwargs.copy())
+        )
         r.raise_for_status()
 
     def _rm(self, path):
@@ -211,7 +214,7 @@ class dCacheFileSystem(AbstractFileSystem):
         path = self._strip_protocol(path)
         url = self.api_url / 'namespace' / _encode(path)
 
-        r = url.delete(**self._update_authentication_kwargs())
+        r = url.delete(**self._update_authentication_kwargs({}))
         r.raise_for_status()
 
     def info(self, path, **kwargs):
@@ -284,6 +287,11 @@ class dCacheFileSystem(AbstractFileSystem):
 
 
 class dCacheFile(AbstractBufferedFile):
+    """
+    A file-like object pointing to a file on dCache
+
+    Reading/writing takes place through the WebDAV door
+    """
     def __init__(self, fs, url, **kwargs):
         path = fs._strip_protocol(url)
         super().__init__(fs=fs, path=path, **kwargs)
