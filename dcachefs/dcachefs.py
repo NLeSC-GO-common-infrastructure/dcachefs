@@ -181,10 +181,12 @@ class dCacheFileSystem(AsyncFileSystem):
         url = url.with_query(children=children)
         if limit is not None and children:
             url = url.add_query(limit=f'{limit}')
-
+        url = url.as_uri()
         kw = self.kwargs.copy()
         kw.update(kwargs)
-        async with self.session.get(url.as_uri(), **kw) as r:
+        async with self.session.get(url, **kw) as r:
+            if r.status == 404:
+                raise FileNotFoundError(url)
             r.raise_for_status()
             return await r.json()
 
@@ -228,6 +230,7 @@ class dCacheFileSystem(AsyncFileSystem):
     async def _cat_file(self, url, start=None, end=None, **kwargs):
         path = self._strip_protocol(url)
         url = URL(self.webdav_url) / path
+        url = url.as_uri()
         kw = self.kwargs.copy()
         kw.update(kwargs)
         if (start is None) ^ (end is None):
@@ -236,7 +239,7 @@ class dCacheFileSystem(AsyncFileSystem):
             headers = kw.pop("headers", {}).copy()
             headers["Range"] = "bytes=%i-%i" % (start, end - 1)
             kw["headers"] = headers
-        async with self.session.get(url.as_uri(), **kw) as r:
+        async with self.session.get(url, **kw) as r:
             if r.status == 404:
                 raise FileNotFoundError(url)
             r.raise_for_status()
@@ -246,9 +249,10 @@ class dCacheFileSystem(AsyncFileSystem):
     async def _get_file(self, rpath, lpath, chunk_size=5 * 2 ** 20, **kwargs):
         path = self._strip_protocol(rpath)
         url = URL(self.webdav_url) / path
+        url = url.as_uri()
         kw = self.kwargs.copy()
         kw.update(kwargs)
-        async with self.session.get(url.as_uri(), **self.kwargs) as r:
+        async with self.session.get(url, **self.kwargs) as r:
             if r.status == 404:
                 raise FileNotFoundError(rpath)
             r.raise_for_status()
@@ -261,10 +265,11 @@ class dCacheFileSystem(AsyncFileSystem):
     async def _put_file(self, lpath, rpath, **kwargs):
         path = self._strip_protocol(rpath)
         url = URL(self.webdav_url) / path
+        url = url.as_uri()
         kw = self.kwargs.copy()
         kw.update(kwargs)
         with open(lpath, "rb") as fd:
-            r = await self.session.put(url.as_uri(), data=fd, **self.kwargs)
+            r = await self.session.put(url, data=fd, **self.kwargs)
             r.raise_for_status()
 
     def cat(self, path, recursive=False, on_error="raise", **kwargs):
@@ -302,10 +307,13 @@ class dCacheFileSystem(AsyncFileSystem):
 
     async def _mv(self, path1, path2, **kwargs):
         url = URL(self.api_url) / 'namespace' / _encode(path1)
+        url = url.as_uri()
         data = dict(action='mv', destination=path2)
         kw = self.kwargs.copy()
         kw.update(kwargs)
-        async with self.session.post(url.as_uri(), json=data, **kw) as r:
+        async with self.session.post(url, json=data, **kw) as r:
+            if r.status == 404:
+                raise FileNotFoundError(url)
             r.raise_for_status()
             return await r.json()
 
@@ -328,9 +336,12 @@ class dCacheFileSystem(AsyncFileSystem):
         :param path: (str)
         """
         url = URL(self.api_url) / 'namespace' / _encode(path)
+        url = url.as_uri()
         kw = self.kwargs.copy()
         kw.update(kwargs)
-        async with self.session.delete(url.as_uri(), **kw) as r:
+        async with self.session.delete(url, **kw) as r:
+            if r.status == 404:
+                raise FileNotFoundError(url)
             r.raise_for_status()
 
     def info(self, path, **kwargs):
@@ -476,7 +487,7 @@ class dCacheFile(HTTPFile):
     ):
         path = fs._strip_protocol(url)
         url = URL(fs.webdav_url) / path
-        self.url = url.to_uri()
+        self.url = url.as_uri()
         self.asynchronous = asynchronous
         self.session = session
         self.loop = loop
