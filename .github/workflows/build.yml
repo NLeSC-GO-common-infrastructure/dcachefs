@@ -31,6 +31,10 @@ jobs:
         run: |
           python setup.py build
       - name: Test
+        env:
+          DCACHE_API_URL: ${{ secrets.DCACHE_API_URL }}
+          DCACHE_WEBDAV_URL: ${{ secrets.DCACHE_WEBDAV_URL }}
+          DCACHE_TOKEN: ${{ secrets.DCACHE_TOKEN }}
         shell: bash -l {0}
         run: |
           python setup.py test
