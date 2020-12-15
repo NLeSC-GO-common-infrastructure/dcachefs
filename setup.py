@@ -55,5 +55,6 @@ setup(
         'pytest',
         'pytest-cov',
         'pycodestyle',
+        'webdavclient3',
     ]
 )
