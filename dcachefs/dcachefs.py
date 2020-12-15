@@ -5,6 +5,7 @@ import weakref
 from datetime import datetime
 from fsspec.asyn import maybe_sync, sync, AsyncFileSystem
 from fsspec.implementations.http import get_client, HTTPFile, HTTPStreamFile
+from fsspec.utils import DEFAULT_BLOCK_SIZE
 from urllib.parse import quote
 from urlpath import URL
 
@@ -405,6 +406,7 @@ class dCacheFileSystem(AsyncFileSystem):
 
         """
         self.webdav_url = self._get_webdav_url(path) or self.webdav_url
+        block_size = DEFAULT_BLOCK_SIZE if block_size is None else block_size
         return super().open(
             path=path,
             mode=mode,
