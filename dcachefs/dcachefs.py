@@ -118,6 +118,26 @@ class dCacheFileSystem(AsyncFileSystem):
             )
         return self._session
 
+    @property
+    def api_url(self):
+        if self._api_url is None:
+            raise ValueError('dCache API URL not set!')
+        return self._api_url
+
+    @api_url.setter
+    def api_url(self, api_url):
+        self._api_url = api_url
+
+    @property
+    def webdav_url(self):
+        if self._webdav_url is None:
+            raise ValueError('WebDAV door not set!')
+        return self._webdav_url
+
+    @webdav_url.setter
+    def webdav_url(self, webdav_url):
+        self._webdav_url = webdav_url
+
     async def set_session(self):
         self._session = await get_client(**self.client_kwargs)
 
