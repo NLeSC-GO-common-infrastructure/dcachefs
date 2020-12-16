@@ -557,7 +557,14 @@ class dCacheStreamFile(HTTPStreamFile):
     def write(self, data):
         if self.mode != "wb":
             raise ValueError("File not in write mode")
-        sync(self.loop, self.session.put, self.url, data=data, **self.kwargs)
+        self.r = sync(
+            self.loop,
+            self.session.put,
+            self.url,
+            data=data,
+            **self.kwargs
+        )
+        self.r.raise_for_status()
 
     def read(self, num=-1):
         if self.mode != "rb":
