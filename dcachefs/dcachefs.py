@@ -401,7 +401,7 @@ class dCacheFileSystem(AsyncFileSystem):
             raise NotImplementedError
         kw = self.kwargs.copy()
         kw.update(kwargs)
-        if block_size and mode == "rb":
+        if block_size:
             return dCacheFile(
                 self,
                 path,
@@ -502,6 +502,24 @@ class dCacheFile(HTTPFile):
             cache_options=cache_options,
             **kwargs
         )
+
+    def flush(self, force=False):
+        if self.closed:
+            raise ValueError("Flush on closed file")
+        if force and self.forced:
+            raise ValueError("Force flush cannot be called more than once")
+        if force:
+            maybe_sync(self._write_chunked, self)
+            self.forced = True
+
+    async def _write_chunked(self):
+        self.buffer.seek(0)
+        r = await self.session.put(self.url, data=self.buffer, **self.kwargs)
+        r.raise_for_status()
+        return False
+
+    def close(self):
+        super(HTTPFile, self).close()
 
 
 class dCacheStreamFile(HTTPStreamFile):

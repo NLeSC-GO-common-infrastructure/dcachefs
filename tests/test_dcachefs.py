@@ -1,4 +1,5 @@
 import datetime
+import io
 import os
 import pathlib
 import pytest
@@ -227,12 +228,29 @@ def test_read_remote_file_as_stream(test_fs):
 
 def test_write_remote_file(test_fs):
     remote_path = '/test/testdir_2/file_open.txt'
+    file_content = bytes(_file_content, 'utf-8')
     with test_fs.open(remote_path, 'wb') as f:
-        assert isinstance(f, dCacheStreamFile)
-        f.write(_file_content)
+        assert isinstance(f, dCacheFile)
+        f.write(b'Hello')
+        f.write(b' world!')
+        assert not test_fs.exists(remote_path)
     assert test_fs.exists(remote_path)
     # cat returns binary output
-    assert test_fs.cat(remote_path) == bytes(_file_content, 'utf-8')
+    assert test_fs.cat(remote_path) == file_content
+
+
+def test_write_remote_file_as_stream(test_fs):
+    remote_path = '/test/testdir_2/file_open.txt'
+    file_content = bytes(_file_content, 'utf-8')
+    stream = io.BytesIO()
+    stream.write(file_content)
+    stream.seek(0)
+    with test_fs.open(remote_path, 'wb', block_size=0) as f:
+        assert isinstance(f, dCacheStreamFile)
+        f.write(stream)
+        assert test_fs.exists(remote_path)
+    # cat returns binary output
+    assert test_fs.cat(remote_path) == file_content
 
 
 def test_write_remote_file_in_text_mode(test_fs):
