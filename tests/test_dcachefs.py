@@ -40,7 +40,7 @@ def test_fs():
                             webdav_url=webdav_url)
 
 
-def test_initialize_fs_without_passwor():
+def test_initialize_fs_without_password():
     with pytest.raises(ValueError):
         _ = dCacheFileSystem(
             username='user',
