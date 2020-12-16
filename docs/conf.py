@@ -19,11 +19,10 @@
 import os
 import sys
 
-import dcachefs
-
 here = os.path.dirname(__file__)
 sys.path.insert(0, os.path.abspath(os.path.join(here, '..')))
 
+import dcachefs
 
 # -- General configuration ------------------------------------------------
 
@@ -34,7 +33,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(here, '..')))
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'nbsphinx']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

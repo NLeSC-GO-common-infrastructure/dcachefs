@@ -49,7 +49,8 @@ setup(
         # dependencies for `python setup.py build_sphinx`
         'sphinx',
         'sphinx_rtd_theme',
-        'recommonmark'
+        'recommonmark',
+        'nbsphinx',
     ],
     tests_require=[
         'pytest',
