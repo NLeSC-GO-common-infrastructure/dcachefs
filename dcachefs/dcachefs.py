@@ -154,6 +154,15 @@ class dCacheFileSystem(AsyncFileSystem):
         return URL(path).path
 
     @classmethod
+    def _get_kwargs_from_urls(cls, path):
+        """
+        Extract kwargs encoded in the path
+        :param path: (str)
+        :return (dict)
+        """
+        return {'webdav_url': cls._get_webdav_url(path)}
+
+    @classmethod
     def _get_webdav_url(cls, path):
         """
         Extract kwargs encoded in the path(s)
