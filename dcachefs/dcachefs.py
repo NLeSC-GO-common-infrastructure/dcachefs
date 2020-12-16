@@ -222,8 +222,8 @@ class dCacheFileSystem(AsyncFileSystem):
             self._ls,
             self,
             path,
-            detail=True,
-            limit=None,
+            detail=detail,
+            limit=limit,
             **kwargs
         )
 
