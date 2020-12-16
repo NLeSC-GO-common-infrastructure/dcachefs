@@ -10,4 +10,4 @@ Welcome to dCacheFS's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   notebooks/tutorial
+   notebooks/examples
