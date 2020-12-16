@@ -18,12 +18,12 @@ def _setup_test_dir(webdav_url, token):
         root = path/'test'
         root.mkdir()
         for subdir in {'testdir_1', 'testdir_2', 'empty_testdir'}:
-            subdir = root / subdir
-            subdir.mkdir()
-            if 'empty' in subdir.name:
+            path = root / subdir
+            path.mkdir()
+            if 'empty' in subdir:
                 continue
             for file in {'file_1.txt', 'file_2.txt'}:
-                file = root/subdir/file
+                file = path/file
                 file.write_text(_file_content)
         client = Client(dict(webdav_hostname=webdav_url, webdav_token=token))
         client.upload(f'/{root.name}', root.as_posix())
