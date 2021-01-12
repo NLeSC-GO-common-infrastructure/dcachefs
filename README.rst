@@ -36,8 +36,8 @@
    :target: https://doi.org/<replace with created DOI>
    :alt: Zenodo Badge
 
-.. |CII Best Practices Badge| image:: https://bestpractices.coreinfrastructure.org/projects/< replace with created project identifier >/badge
-   :target: https://bestpractices.coreinfrastructure.org/projects/< replace with created project identifier >
+.. |CII Best Practices Badge| image:: https://bestpractices.coreinfrastructure.org/projects/4585/badge
+   :target: https://bestpractices.coreinfrastructure.org/projects/4585
    :alt: CII Best Practices Badge
 
 .. |Python Build| image:: https://github.com/NLeSC-GO-common-infrastructure/dcachefs/workflows/Build/badge.svg
@@ -53,9 +53,6 @@ dCacheFS
 ################################################################################
 
 Python filesystem interface for dCache.
-
-
-The project setup is documented in `a separate document <project_setup.rst>`_. Feel free to remove this document (and/or the link to this document) if you don't need it.
 
 Installation
 ------------
@@ -79,9 +76,9 @@ Run tests (including coverage) with:
 Documentation
 *************
 
-.. _README:
+The project's full documentation can be found `here`_.
 
-Include a link to your project's full documentation here.
+.. _here: https://dcachefs.readthedocs.io
 
 Contributing
 ************
