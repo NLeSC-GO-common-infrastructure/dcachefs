@@ -16,7 +16,7 @@ have a look at the  `contribution guidelines`_.
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    notebooks/examples
