@@ -9,7 +9,7 @@
    * - \2. License
      - |License Badge|
    * - \3. Community Registry
-     - |PyPI Badge| |Research Software Directory Badge|
+     - |PyPI Badge|
    * - \4. Enable Citation
      - |Zenodo Badge|
    * - \5. Checklist
@@ -19,7 +19,6 @@
    * - Continuous integration
      - |Python Build| |PyPI Publish|
 
-(Customize these badges with your own links, and check https://shields.io/ or https://badgen.net/ to see which other badges are available.)
 
 .. |GitHub Badge| image:: https://img.shields.io/badge/github-repo-000.svg?logo=github&labelColor=gray&color=blue
    :target: https://github.com/NLeSC-GO-common-infrastructure/dcachefs
@@ -32,21 +31,11 @@
 .. |PyPI Badge| image:: https://img.shields.io/pypi/v/dcachefs.svg?colorB=blue
    :target: https://pypi.python.org/project/dcachefs/
    :alt: PyPI Badge
-.. |Research Software Directory Badge| image:: https://img.shields.io/badge/rsd-dcachefs-00a3e3.svg
-   :target: https://www.research-software.nl/software/dcachefs
-   :alt: Research Software Directory Badge
 
-..
-    Goto https://zenodo.org/account/settings/github/ to enable Zenodo/GitHub integration.
-    After creation of a GitHub release at https://github.com/NLeSC-GO-common-infrastructure/dcachefs/releases
-    there will be a Zenodo upload created at https://zenodo.org/deposit with a DOI, this DOI can be put in the Zenodo badge urls.
-    In the README, we prefer to use the concept DOI over versioned DOI, see https://help.zenodo.org/#versioning.
 .. |Zenodo Badge| image:: https://zenodo.org/badge/DOI/< replace with created DOI >.svg
    :target: https://doi.org/<replace with created DOI>
    :alt: Zenodo Badge
 
-..
-    A CII Best Practices project can be created at https://bestpractices.coreinfrastructure.org/en/projects/new
 .. |CII Best Practices Badge| image:: https://bestpractices.coreinfrastructure.org/projects/< replace with created project identifier >/badge
    :target: https://bestpractices.coreinfrastructure.org/projects/< replace with created project identifier >
    :alt: CII Best Practices Badge
