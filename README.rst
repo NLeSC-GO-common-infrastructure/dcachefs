@@ -32,7 +32,7 @@
    :target: https://pypi.python.org/project/dcachefs/
    :alt: PyPI Badge
 
-.. |Zenodo Badge| image:: https://zenodo.org/badge/DOI/< replace with created DOI >.svg
+.. |Zenodo Badge| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4436720.svg
    :target: https://doi.org/<replace with created DOI>
    :alt: Zenodo Badge
 
@@ -58,6 +58,13 @@ Installation
 ------------
 
 To install dcachefs, do:
+
+.. code-block:: console
+  
+  pip install dcachefs
+
+
+or 
 
 .. code-block:: console
 
