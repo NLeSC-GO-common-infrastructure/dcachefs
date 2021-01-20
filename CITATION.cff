@@ -10,7 +10,7 @@ authors:
     orcid: "https://orcid.org/0000-0003-3286-0139"
 date-released: 2021-01-13
 doi: "10.5281/zenodo.4436720"
-version: "0.1.0"
+version: "0.1.1"
 repository-code: "https://github.com/NLeSC-GO-common-infrastructure/dcachefs"
 keywords:
   - "dCache"
