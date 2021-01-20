@@ -62,6 +62,7 @@ class dCacheFileSystem(AsyncFileSystem):
         username=None,
         password=None,
         token=None,
+        block_size=None,
         asynchronous=False,
         loop=None,
         client_kwargs=None,
@@ -103,6 +104,8 @@ class dCacheFileSystem(AsyncFileSystem):
             headers = self.client_kwargs.get('headers', {})
             headers.update(Authorization=f'Bearer {token}')
             self.client_kwargs.update(headers=headers)
+        block_size = DEFAULT_BLOCK_SIZE if block_size is None else block_size
+        self.block_size = block_size
         self.kwargs = storage_options
         if not asynchronous:
             self._session = sync(self.loop, get_client, **self.client_kwargs)
@@ -446,7 +449,7 @@ class dCacheFileSystem(AsyncFileSystem):
 
         """
         self.webdav_url = self._get_webdav_url(path) or self.webdav_url
-        block_size = DEFAULT_BLOCK_SIZE if block_size is None else block_size
+        block_size = self.block_size if block_size is None else block_size
         return super().open(
             path=path,
             mode=mode,
