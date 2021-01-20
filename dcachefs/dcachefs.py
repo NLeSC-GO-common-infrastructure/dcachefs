@@ -1,4 +1,5 @@
 import aiohttp
+import asyncio
 import logging
 import weakref
 
@@ -355,6 +356,14 @@ class dCacheFileSystem(AsyncFileSystem):
             if r.status == 404:
                 raise FileNotFoundError(url)
             r.raise_for_status()
+
+    async def _rm(self, path, recursive=False, **kwargs):
+        """
+        Asynchronous remove method. Need to delete elements from branches
+        towards root, awaiting tasks to be completed.
+        """
+        for p in reversed(path):
+            await asyncio.gather(self._rm_file(p, **kwargs))
 
     def info(self, path, **kwargs):
         """
