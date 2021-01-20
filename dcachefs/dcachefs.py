@@ -1,4 +1,5 @@
 import aiohttp
+import asyncio
 import logging
 import weakref
 
@@ -62,6 +63,7 @@ class dCacheFileSystem(AsyncFileSystem):
         username=None,
         password=None,
         token=None,
+        block_size=None,
         asynchronous=False,
         loop=None,
         client_kwargs=None,
@@ -103,6 +105,8 @@ class dCacheFileSystem(AsyncFileSystem):
             headers = self.client_kwargs.get('headers', {})
             headers.update(Authorization=f'Bearer {token}')
             self.client_kwargs.update(headers=headers)
+        block_size = DEFAULT_BLOCK_SIZE if block_size is None else block_size
+        self.block_size = block_size
         self.kwargs = storage_options
         if not asynchronous:
             self._session = sync(self.loop, get_client, **self.client_kwargs)
@@ -353,6 +357,14 @@ class dCacheFileSystem(AsyncFileSystem):
                 raise FileNotFoundError(url)
             r.raise_for_status()
 
+    async def _rm(self, path, recursive=False, **kwargs):
+        """
+        Asynchronous remove method. Need to delete elements from branches
+        towards root, awaiting tasks to be completed.
+        """
+        for p in reversed(path):
+            await asyncio.gather(self._rm_file(p, **kwargs))
+
     def info(self, path, **kwargs):
         """
         Give details about a file or a directory
@@ -446,7 +458,7 @@ class dCacheFileSystem(AsyncFileSystem):
 
         """
         self.webdav_url = self._get_webdav_url(path) or self.webdav_url
-        block_size = DEFAULT_BLOCK_SIZE if block_size is None else block_size
+        block_size = self.block_size if block_size is None else block_size
         return super().open(
             path=path,
             mode=mode,
@@ -545,6 +557,7 @@ class dCacheStreamFile(HTTPStreamFile):
         path = fs._strip_protocol(url)
         url = URL(fs.webdav_url) / path
         self.url = url.as_uri()
+        self.details = {"name": self.url, "size": None}
         self.asynchronous = asynchronous
         self.session = session
         self.loop = loop
