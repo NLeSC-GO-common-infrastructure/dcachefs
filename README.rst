@@ -33,7 +33,7 @@
    :alt: PyPI Badge
 
 .. |Zenodo Badge| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4436720.svg
-   :target: https://doi.org/<replace with created DOI>
+   :target: https://doi.org/10.5281/zenodo.4436720
    :alt: Zenodo Badge
 
 .. |CII Best Practices Badge| image:: https://bestpractices.coreinfrastructure.org/projects/4585/badge
