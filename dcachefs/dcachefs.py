@@ -557,6 +557,7 @@ class dCacheStreamFile(HTTPStreamFile):
         path = fs._strip_protocol(url)
         url = URL(fs.webdav_url) / path
         self.url = url.as_uri()
+        self.details = {"name": self.url, "size": None}
         self.asynchronous = asynchronous
         self.session = session
         self.loop = loop
