@@ -4,7 +4,7 @@ import logging
 import weakref
 
 from datetime import datetime
-from fsspec.asyn import maybe_sync, sync, AsyncFileSystem
+from fsspec.asyn import sync_wrapper, sync, AsyncFileSystem
 from fsspec.implementations.http import get_client, HTTPFile, HTTPStreamFile
 from fsspec.utils import DEFAULT_BLOCK_SIZE
 from urllib.parse import quote
@@ -215,6 +215,8 @@ class dCacheFileSystem(AsyncFileSystem):
         :param kwargs: (dict) optional arguments passed on to requests
         :return list of dictionaries or list of str
         """
+        path = self._strip_protocol(path)
+
         info = await self._get_info(path, children=True, limit=limit,
                                     **kwargs)
         details = _get_details(path, info)
@@ -229,18 +231,11 @@ class dCacheFileSystem(AsyncFileSystem):
         else:
             return [d.get('name') for d in details]
 
-    def ls(self, path, detail=True, limit=None, **kwargs):
-        path = self._strip_protocol(path)
-        return maybe_sync(
-            self._ls,
-            self,
-            path,
-            detail=detail,
-            limit=limit,
-            **kwargs
-        )
+    ls = sync_wrapper(_ls)
 
     async def _cat_file(self, url, start=None, end=None, **kwargs):
+        self.webdav_url = self._get_webdav_url(url) or self.webdav_url
+
         path = self._strip_protocol(url)
         url = URL(self.webdav_url) / path
         url = url.as_uri()
@@ -260,6 +255,8 @@ class dCacheFileSystem(AsyncFileSystem):
         return out
 
     async def _get_file(self, rpath, lpath, chunk_size=5 * 2 ** 20, **kwargs):
+        self.webdav_url = self._get_webdav_url(rpath) or self.webdav_url
+
         path = self._strip_protocol(rpath)
         url = URL(self.webdav_url) / path
         url = url.as_uri()
@@ -276,6 +273,8 @@ class dCacheFileSystem(AsyncFileSystem):
                     fd.write(chunk)
 
     async def _put_file(self, lpath, rpath, **kwargs):
+        self.webdav_url = self._get_webdav_url(rpath) or self.webdav_url
+
         path = self._strip_protocol(rpath)
         url = URL(self.webdav_url) / path
         url = url.as_uri()
@@ -285,33 +284,6 @@ class dCacheFileSystem(AsyncFileSystem):
             r = await self.session.put(url, data=fd, **self.kwargs)
             r.raise_for_status()
 
-    def cat(self, path, recursive=False, on_error="raise", **kwargs):
-        self.webdav_url = self._get_webdav_url(path) or self.webdav_url
-        return super().cat(
-            path=path,
-            recursive=recursive,
-            on_error=on_error,
-            **kwargs
-        )
-
-    def get(self, rpath, lpath, recursive=False, **kwargs):
-        self.webdav_url = self._get_webdav_url(rpath) or self.webdav_url
-        super().get(
-            rpath=rpath,
-            lpath=lpath,
-            recursive=recursive,
-            **kwargs
-        )
-
-    def put(self, lpath, rpath, recursive=False, **kwargs):
-        self.webdav_url = self._get_webdav_url(rpath) or self.webdav_url
-        super().put(
-            lpath=lpath,
-            rpath=rpath,
-            recursive=recursive,
-            **kwargs
-        )
-
     async def _cp_file(self, path1, path2, **kwargs):
         raise NotImplementedError
 
@@ -319,6 +291,16 @@ class dCacheFileSystem(AsyncFileSystem):
         raise NotImplementedError
 
     async def _mv(self, path1, path2, **kwargs):
+        """
+        Rename path1 to path2
+
+        :param path1: (str) source path
+        :param path2: (str) destination path
+        :param kwargs: (dict) optional arguments passed on to requests
+        """
+        path1 = self._strip_protocol(path1)
+        path2 = self._strip_protocol(path2)
+
         url = URL(self.api_url) / 'namespace' / _encode(path1)
         url = url.as_uri()
         data = dict(action='mv', destination=path2)
@@ -330,17 +312,7 @@ class dCacheFileSystem(AsyncFileSystem):
             r.raise_for_status()
             return await r.json()
 
-    def mv(self, path1, path2, **kwargs):
-        """
-        Rename path1 to path2
-
-        :param path1: (str) source path
-        :param path2: (str) destination path
-        :param kwargs: (dict) optional arguments passed on to requests
-        """
-        path1 = self._strip_protocol(path1)
-        path2 = self._strip_protocol(path2)
-        maybe_sync(self._mv, self, path1, path2, **kwargs)
+    mv = sync_wrapper(_mv)
 
     async def _rm_file(self, path, **kwargs):
         """
@@ -362,10 +334,13 @@ class dCacheFileSystem(AsyncFileSystem):
         Asynchronous remove method. Need to delete elements from branches
         towards root, awaiting tasks to be completed.
         """
+        path = await self._expand_path(path, recursive=recursive)
         for p in reversed(path):
             await asyncio.gather(self._rm_file(p, **kwargs))
 
-    def info(self, path, **kwargs):
+    rm = sync_wrapper(_rm)
+
+    async def _info(self, path, **kwargs):
         """
         Give details about a file or a directory
 
@@ -374,8 +349,10 @@ class dCacheFileSystem(AsyncFileSystem):
         :return (dict)
         """
         path = self._strip_protocol(path)
-        info = maybe_sync(self._get_info, self, path, **kwargs)
+        info = await self._get_info(path, **kwargs)
         return _get_details(path, info)
+
+    info = sync_wrapper(_info)
 
     def created(self, path):
         """
@@ -530,7 +507,7 @@ class dCacheFile(HTTPFile):
         if force and self.forced:
             raise ValueError("Force flush cannot be called more than once")
         if force:
-            maybe_sync(self._write_chunked, self)
+            self.write_chunked()
             self.forced = True
 
     async def _write_chunked(self):
@@ -538,6 +515,8 @@ class dCacheFile(HTTPFile):
         r = await self.session.put(self.url, data=self.buffer, **self.kwargs)
         r.raise_for_status()
         return False
+
+    write_chunked = sync_wrapper(_write_chunked)
 
     def close(self):
         super(HTTPFile, self).close()

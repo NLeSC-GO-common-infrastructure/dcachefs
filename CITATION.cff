@@ -8,9 +8,9 @@ authors:
     family-names: Nattino
     given-names: Francesco
     orcid: "https://orcid.org/0000-0003-3286-0139"
-date-released: 2021-01-13
+date-released: 2021-04-09
 doi: "10.5281/zenodo.4436720"
-version: "0.1.2"
+version: "0.1.3"
 repository-code: "https://github.com/NLeSC-GO-common-infrastructure/dcachefs"
 keywords:
   - "dCache"
