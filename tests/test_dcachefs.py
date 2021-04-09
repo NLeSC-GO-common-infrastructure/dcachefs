@@ -200,7 +200,7 @@ def test_read_remote_file(test_fs):
     with test_fs.open(remote_path) as f:
         assert isinstance(f, dCacheFile)
         assert f.read(5) == b'Hello'
-        assert f.cache.data == bytes(_file_content, 'utf-8')
+        assert f.cache.cache == bytes(_file_content, 'utf-8')
         f.read(1)
         assert f.read(5) == b'world'
 
