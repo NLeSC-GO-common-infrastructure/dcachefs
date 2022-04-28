@@ -52,7 +52,8 @@
 dCacheFS
 ################################################################################
 
-Python filesystem interface for dCache.
+Python filesystem interface for dCache based on and integrated with 
+`Filesystem Spec <https://github.com/fsspec/filesystem_spec>`_.
 
 Installation
 ------------
