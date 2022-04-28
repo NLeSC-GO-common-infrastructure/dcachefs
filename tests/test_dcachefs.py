@@ -102,6 +102,11 @@ def test_info_file(test_fs):
     assert out['type'] == 'file'
 
 
+def test_info_with_dcache_protocol(test_fs):
+    out = test_fs.info('dcache://test/testdir_1/file_1.txt')
+    assert out['type'] == 'file'
+
+
 def test_info_with_webdav_drive(test_fs):
     # the protocol and drive should be stripped by the path
     out = test_fs.info('https://webdav.com:9999/test/testdir_1/file_1.txt')
