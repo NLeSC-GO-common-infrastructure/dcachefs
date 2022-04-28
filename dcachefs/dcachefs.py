@@ -155,7 +155,8 @@ class dCacheFileSystem(AsyncFileSystem):
         """
         if isinstance(path, list):
             return [cls._strip_protocol(p) for p in path]
-        return URL(path).path
+        url = URL(path)
+        return url.path if "http" in url.scheme else path.split(":/")[-1]
 
     @classmethod
     def _get_kwargs_from_urls(cls, path):
@@ -164,7 +165,8 @@ class dCacheFileSystem(AsyncFileSystem):
         :param path: (str)
         :return (dict)
         """
-        return {'webdav_url': cls._get_webdav_url(path)}
+        webdav_url = cls._get_webdav_url(path)
+        return {'webdav_url': webdav_url} if webdav_url is not None else {}
 
     @classmethod
     def _get_webdav_url(cls, path):
@@ -176,7 +178,8 @@ class dCacheFileSystem(AsyncFileSystem):
         """
         if isinstance(path, list):
             return cls._get_webdav_url(path[0])
-        return URL(path).drive or None
+        url = URL(path)
+        return url.drive if "http" in url.scheme else None
 
     async def _get_info(self, path, children=False, limit=None, **kwargs):
         """
@@ -234,10 +237,10 @@ class dCacheFileSystem(AsyncFileSystem):
     ls = sync_wrapper(_ls)
 
     async def _cat_file(self, url, start=None, end=None, **kwargs):
-        self.webdav_url = self._get_webdav_url(url) or self.webdav_url
+        webdav_url = self._get_webdav_url(url) or self.webdav_url
 
         path = self._strip_protocol(url)
-        url = URL(self.webdav_url) / path
+        url = URL(webdav_url) / path
         url = url.as_uri()
         kw = self.kwargs.copy()
         kw.update(kwargs)
@@ -255,10 +258,10 @@ class dCacheFileSystem(AsyncFileSystem):
         return out
 
     async def _get_file(self, rpath, lpath, chunk_size=5 * 2 ** 20, **kwargs):
-        self.webdav_url = self._get_webdav_url(rpath) or self.webdav_url
+        webdav_url = self._get_webdav_url(rpath) or self.webdav_url
 
         path = self._strip_protocol(rpath)
-        url = URL(self.webdav_url) / path
+        url = URL(webdav_url) / path
         url = url.as_uri()
         kw = self.kwargs.copy()
         kw.update(kwargs)
@@ -273,10 +276,10 @@ class dCacheFileSystem(AsyncFileSystem):
                     fd.write(chunk)
 
     async def _put_file(self, lpath, rpath, **kwargs):
-        self.webdav_url = self._get_webdav_url(rpath) or self.webdav_url
+        webdav_url = self._get_webdav_url(rpath) or self.webdav_url
 
         path = self._strip_protocol(rpath)
-        url = URL(self.webdav_url) / path
+        url = URL(webdav_url) / path
         url = url.as_uri()
         kw = self.kwargs.copy()
         kw.update(kwargs)
