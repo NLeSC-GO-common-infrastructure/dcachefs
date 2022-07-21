@@ -53,7 +53,26 @@ def _encode(path):
 
 class dCacheFileSystem(AsyncFileSystem):
     """
+    File system interface for a dCache storage instance.
 
+    Inspired by the fsspec HTTPFileSystem implementation, specific methods
+    interacts with the dCache system either via its API or via the WebDAV
+    protocol.
+
+    Parameters
+    ----------
+    block_size: int
+        Blocks to read bytes; if 0, will default to raw requests file-like
+        objects
+    client_kwargs: dict
+        Passed to `aiohttp.ClientSession`, see
+        https://docs.aiohttp.org/en/stable/client_reference.html
+        For example, `{'auth': aiohttp.BasicAuth('user', 'pass')}`
+    request_kwargs: dict
+        Passed to the `request` method of `aiohttp.ClientSession` (also
+        see `client_kwargs`)
+    **storage_options: dict
+        Passed to the super-class
     """
 
     def __init__(
