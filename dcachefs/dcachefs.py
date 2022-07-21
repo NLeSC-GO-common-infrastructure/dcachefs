@@ -68,13 +68,14 @@ class dCacheFileSystem(AsyncFileSystem):
         request_kwargs=None,
         asynchronous=False,
         loop=None,
-        client_kwargs=None,
+        batch_size=None,
         **storage_options
     ):
         super().__init__(
             self,
             asynchronous=asynchronous,
             loop=loop,
+            batch_size=batch_size,
             **storage_options
         )
         self.api_url = api_url
