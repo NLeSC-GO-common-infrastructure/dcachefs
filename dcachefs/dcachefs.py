@@ -263,10 +263,10 @@ class dCacheFileSystem(AsyncFileSystem):
 
     ls = sync_wrapper(_ls)
 
-    async def _cat_file(self, url, start=None, end=None, **kwargs):
-        webdav_url = self._get_webdav_url(url) or self.webdav_url
+    async def _cat_file(self, path, start=None, end=None, **kwargs):
+        webdav_url = self._get_webdav_url(path) or self.webdav_url
 
-        path = self._strip_protocol(url)
+        path = self._strip_protocol(path)
         url = URL(webdav_url) / path
         url = url.as_uri()
         request_kwargs = self.request_kwargs.copy()
