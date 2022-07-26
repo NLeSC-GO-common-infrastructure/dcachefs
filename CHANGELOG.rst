@@ -11,6 +11,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Added
 -----
 * added request_kwargs to provide specific arguments to request calls
+* added pipe_file method to dCacheFileSystem, which enables the usage in fsspec.get_mapper 
 
 Fixed
 -----
