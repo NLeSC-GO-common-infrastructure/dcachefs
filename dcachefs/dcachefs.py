@@ -53,7 +53,26 @@ def _encode(path):
 
 class dCacheFileSystem(AsyncFileSystem):
     """
+    File system interface for a dCache storage instance.
 
+    Inspired by the fsspec HTTPFileSystem implementation, specific methods
+    interacts with the dCache system either via its API or via the WebDAV
+    protocol.
+
+    Parameters
+    ----------
+    block_size: int
+        Blocks to read bytes; if 0, will default to raw requests file-like
+        objects
+    client_kwargs: dict
+        Passed to `aiohttp.ClientSession`, see
+        https://docs.aiohttp.org/en/stable/client_reference.html
+        For example, `{'auth': aiohttp.BasicAuth('user', 'pass')}`
+    request_kwargs: dict
+        Passed to the `request` method of `aiohttp.ClientSession` (also
+        see `client_kwargs`)
+    **storage_options: dict
+        Passed to the super-class
     """
 
     def __init__(
@@ -64,35 +83,24 @@ class dCacheFileSystem(AsyncFileSystem):
         password=None,
         token=None,
         block_size=None,
+        client_kwargs=None,
+        request_kwargs=None,
         asynchronous=False,
         loop=None,
-        client_kwargs=None,
+        batch_size=None,
         **storage_options
     ):
-        """
-        NB: if this is called async, you must await set_client
-
-        Parameters
-        ----------
-        block_size: int
-            Blocks to read bytes; if 0, will default to raw requests file-like
-            objects instead of HTTPFile instances
-        client_kwargs: dict
-            Passed to aiohttp.ClientSession, see
-            https://docs.aiohttp.org/en/stable/client_reference.html
-            For example, ``{'auth': aiohttp.BasicAuth('user', 'pass')}``
-        storage_options: key-value
-            Any other parameters passed on to requests
-        """
         super().__init__(
             self,
             asynchronous=asynchronous,
             loop=loop,
+            batch_size=batch_size,
             **storage_options
         )
         self.api_url = api_url
         self.webdav_url = webdav_url
-        self.client_kwargs = client_kwargs or {}
+        self.client_kwargs = {} if client_kwargs is None else client_kwargs
+        self.request_kwargs = {} if request_kwargs is None else request_kwargs
         if (username is None) ^ (password is None):
             raise ValueError('Username or password not provided')
         if (username is not None) and (password is not None):
@@ -107,19 +115,36 @@ class dCacheFileSystem(AsyncFileSystem):
             self.client_kwargs.update(headers=headers)
         block_size = DEFAULT_BLOCK_SIZE if block_size is None else block_size
         self.block_size = block_size
-        self.kwargs = storage_options
+        self._session = None
         if not asynchronous:
-            self._session = sync(self.loop, get_client, **self.client_kwargs)
-            weakref.finalize(self, sync, self.loop, self.session.close)
-        else:
-            self._session = None
+            sync(self.loop, self.set_session)
 
-    @property
-    def session(self):
+    @staticmethod
+    def close_session(loop, session):
+        if loop is not None and loop.is_running():
+            try:
+                sync(loop, session.close, timeout=0.1)
+                return
+            except (TimeoutError, FSTimeoutError):
+                pass
+        connector = getattr(session, "_connector", None)
+        if connector is not None:
+            # close after loop is dead
+            connector._close()
+
+    async def set_session(self):
         if self._session is None:
-            raise RuntimeError(
-                "please await ``.set_session`` before anything else"
+            self._session = await get_client(
+                loop=self.loop,
+                **self.client_kwargs
             )
+            if not self.asynchronous:
+                weakref.finalize(
+                    self,
+                    self.close_session,
+                    self.loop,
+                    self._session
+                )
         return self._session
 
     @property
@@ -141,9 +166,6 @@ class dCacheFileSystem(AsyncFileSystem):
     @webdav_url.setter
     def webdav_url(self, webdav_url):
         self._webdav_url = webdav_url
-
-    async def set_session(self):
-        self._session = await get_client(**self.client_kwargs)
 
     @classmethod
     def _strip_protocol(cls, path):
@@ -198,9 +220,10 @@ class dCacheFileSystem(AsyncFileSystem):
         if limit is not None and children:
             url = url.add_query(limit=f'{limit}')
         url = url.as_uri()
-        kw = self.kwargs.copy()
-        kw.update(kwargs)
-        async with self.session.get(url, **kw) as r:
+        request_kwargs = self.request_kwargs.copy()
+        request_kwargs.update(kwargs)
+        session = await self.set_session()
+        async with session.get(url, **request_kwargs) as r:
             if r.status == 404:
                 raise FileNotFoundError(url)
             r.raise_for_status()
@@ -220,8 +243,12 @@ class dCacheFileSystem(AsyncFileSystem):
         """
         path = self._strip_protocol(path)
 
-        info = await self._get_info(path, children=True, limit=limit,
-                                    **kwargs)
+        info = await self._get_info(
+            path,
+            children=True,
+            limit=limit,
+            **kwargs
+        )
         details = _get_details(path, info)
         if details['type'] == 'directory':
             elements = info.get('children') or []
@@ -242,15 +269,16 @@ class dCacheFileSystem(AsyncFileSystem):
         path = self._strip_protocol(url)
         url = URL(webdav_url) / path
         url = url.as_uri()
-        kw = self.kwargs.copy()
-        kw.update(kwargs)
+        request_kwargs = self.request_kwargs.copy()
+        request_kwargs.update(kwargs)
         if (start is None) ^ (end is None):
             raise ValueError("Give start and end or neither")
         if start is not None:
-            headers = kw.pop("headers", {}).copy()
+            headers = request_kwargs.pop("headers", {}).copy()
             headers["Range"] = "bytes=%i-%i" % (start, end - 1)
-            kw["headers"] = headers
-        async with self.session.get(url, **kw) as r:
+            request_kwargs["headers"] = headers
+        session = await self.set_session()
+        async with session.get(url, **request_kwargs) as r:
             if r.status == 404:
                 raise FileNotFoundError(url)
             r.raise_for_status()
@@ -263,9 +291,10 @@ class dCacheFileSystem(AsyncFileSystem):
         path = self._strip_protocol(rpath)
         url = URL(webdav_url) / path
         url = url.as_uri()
-        kw = self.kwargs.copy()
-        kw.update(kwargs)
-        async with self.session.get(url, **self.kwargs) as r:
+        request_kwargs = self.request_kwargs.copy()
+        request_kwargs.update(kwargs)
+        session = await self.set_session()
+        async with session.get(url, **request_kwargs) as r:
             if r.status == 404:
                 raise FileNotFoundError(rpath)
             r.raise_for_status()
@@ -281,10 +310,11 @@ class dCacheFileSystem(AsyncFileSystem):
         path = self._strip_protocol(rpath)
         url = URL(webdav_url) / path
         url = url.as_uri()
-        kw = self.kwargs.copy()
-        kw.update(kwargs)
+        request_kwargs = self.request_kwargs.copy()
+        request_kwargs.update(kwargs)
+        session = await self.set_session()
         with open(lpath, "rb") as fd:
-            r = await self.session.put(url, data=fd, **self.kwargs)
+            r = await session.put(url, data=fd, **request_kwargs)
             r.raise_for_status()
 
     async def _cp_file(self, path1, path2, **kwargs):
@@ -307,9 +337,10 @@ class dCacheFileSystem(AsyncFileSystem):
         url = URL(self.api_url) / 'namespace' / _encode(path1)
         url = url.as_uri()
         data = dict(action='mv', destination=path2)
-        kw = self.kwargs.copy()
-        kw.update(kwargs)
-        async with self.session.post(url, json=data, **kw) as r:
+        request_kwargs = self.request_kwargs.copy()
+        request_kwargs.update(kwargs)
+        session = await self.set_session()
+        async with session.post(url, json=data, **request_kwargs) as r:
             if r.status == 404:
                 raise FileNotFoundError(url)
             r.raise_for_status()
@@ -325,9 +356,10 @@ class dCacheFileSystem(AsyncFileSystem):
         """
         url = URL(self.api_url) / 'namespace' / _encode(path)
         url = url.as_uri()
-        kw = self.kwargs.copy()
-        kw.update(kwargs)
-        async with self.session.delete(url, **kw) as r:
+        request_kwargs = self.request_kwargs.copy()
+        request_kwargs.update(kwargs)
+        session = await self.set_session()
+        async with session.delete(url, **request_kwargs) as r:
             if r.status == 404:
                 raise FileNotFoundError(url)
             r.raise_for_status()
@@ -380,8 +412,7 @@ class dCacheFileSystem(AsyncFileSystem):
         path,
         mode="rb",
         block_size=None,
-        cache_type="readahead",
-        cache_options=None,
+        request_kwargs=None,
         **kwargs
     ):
         """Make a file-like object
@@ -400,50 +431,45 @@ class dCacheFileSystem(AsyncFileSystem):
         """
         if mode not in {"rb", "wb"}:
             raise NotImplementedError
-        kw = self.kwargs.copy()
-        kw.update(kwargs)
+        block_size = self.block_size if block_size is None else block_size
+        rkw = self.request_kwargs.copy()
+        request_kwargs = {} if request_kwargs is None else request_kwargs
+        rkw.update(request_kwargs)
+        session = sync(self.loop, self.set_session)
         if block_size:
             return dCacheFile(
                 self,
                 path,
                 mode=mode,
                 block_size=block_size,
-                cache_type=cache_type,
-                cache_options=cache_options,
+                request_kwargs=rkw,
                 asynchronous=self.asynchronous,
-                session=self.session,
+                session=session,
                 loop=self.loop,
-                **kw
+                **kwargs
             )
         else:
             return dCacheStreamFile(
                 self,
                 path,
                 mode=mode,
+                request_kwargs=rkw,
                 asynchronous=self.asynchronous,
-                session=self.session,
+                session=session,
                 loop=self.loop,
-                **kw
+                **kwargs
             )
 
     def open(
         self,
         path,
         mode="rb",
-        block_size=None,
-        cache_options=None,
         **kwargs
     ):
-        """
-
-        """
         self.webdav_url = self._get_webdav_url(path) or self.webdav_url
-        block_size = self.block_size if block_size is None else block_size
         return super().open(
             path=path,
             mode=mode,
-            block_size=block_size,
-            cache_options=cache_options,
             **kwargs
         )
 
@@ -479,8 +505,7 @@ class dCacheFile(HTTPFile):
         url,
         mode="rb",
         block_size=None,
-        cache_type="bytes",
-        cache_options=None,
+        request_kwargs=None,
         asynchronous=False,
         session=None,
         loop=None,
@@ -492,6 +517,7 @@ class dCacheFile(HTTPFile):
         self.asynchronous = asynchronous
         self.session = session
         self.loop = loop
+        self.request_kwargs = {} if request_kwargs is None else request_kwargs
         if mode not in {"rb", "wb"}:
             raise ValueError
         super(HTTPFile, self).__init__(
@@ -499,8 +525,6 @@ class dCacheFile(HTTPFile):
             path=path,
             mode=mode,
             block_size=block_size,
-            cache_type=cache_type,
-            cache_options=cache_options,
             **kwargs
         )
 
@@ -515,8 +539,13 @@ class dCacheFile(HTTPFile):
 
     async def _write_chunked(self):
         self.buffer.seek(0)
-        r = await self.session.put(self.url, data=self.buffer, **self.kwargs)
-        r.raise_for_status()
+        r = await self.session.put(
+            self.url,
+            data=self.buffer,
+            **self.request_kwargs
+        )
+        async with r:
+            r.raise_for_status()
         return False
 
     write_chunked = sync_wrapper(_write_chunked)
@@ -531,6 +560,7 @@ class dCacheStreamFile(HTTPStreamFile):
         fs,
         url,
         mode="rb",
+        request_kwargs=None,
         asynchronous=False,
         session=None,
         loop=None,
@@ -540,6 +570,7 @@ class dCacheStreamFile(HTTPStreamFile):
         url = URL(fs.webdav_url) / path
         self.url = url.as_uri()
         self.details = {"name": self.url, "size": None}
+        self.request_kwargs = {} if request_kwargs is None else request_kwargs
         self.asynchronous = asynchronous
         self.session = session
         self.loop = loop
@@ -549,10 +580,15 @@ class dCacheStreamFile(HTTPStreamFile):
             mode=mode,
             block_size=0,
             cache_type="none",
-            cache_options={},
             **kwargs)
         if self.mode == "rb":
-            self.r = sync(self.loop, self.session.get, self.url, **self.kwargs)
+
+            async def get():
+                r = await self.session.get(self.url, **self.request_kwargs)
+                return r
+
+            self.r = sync(self.loop, get)
+            self.r.raise_for_status()
         elif self.mode == "wb":
             pass
         else:
@@ -561,13 +597,16 @@ class dCacheStreamFile(HTTPStreamFile):
     def write(self, data):
         if self.mode != "wb":
             raise ValueError("File not in write mode")
-        self.r = sync(
-            self.loop,
-            self.session.put,
-            self.url,
-            data=data,
-            **self.kwargs
-        )
+
+        async def put():
+            r = await self.session.put(
+                self.url,
+                data=data,
+                **self.request_kwargs
+            )
+            return r
+
+        self.r = sync(self.loop, put)
         self.r.raise_for_status()
 
     def read(self, num=-1):
