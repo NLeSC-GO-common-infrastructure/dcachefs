@@ -263,10 +263,10 @@ class dCacheFileSystem(AsyncFileSystem):
 
     ls = sync_wrapper(_ls)
 
-    async def _cat_file(self, url, start=None, end=None, **kwargs):
-        webdav_url = self._get_webdav_url(url) or self.webdav_url
+    async def _cat_file(self, path, start=None, end=None, **kwargs):
+        webdav_url = self._get_webdav_url(path) or self.webdav_url
 
-        path = self._strip_protocol(url)
+        path = self._strip_protocol(path)
         url = URL(webdav_url) / path
         url = url.as_uri()
         request_kwargs = self.request_kwargs.copy()
@@ -320,8 +320,17 @@ class dCacheFileSystem(AsyncFileSystem):
     async def _cp_file(self, path1, path2, **kwargs):
         raise NotImplementedError
 
-    async def _pipe_file(self, path1, path2, **kwargs):
-        raise NotImplementedError
+    async def _pipe_file(self, path, value, **kwargs):
+        webdav_url = self._get_webdav_url(path) or self.webdav_url
+
+        path = self._strip_protocol(path)
+        url = URL(webdav_url) / path
+        url = url.as_uri()
+        request_kwargs = self.request_kwargs.copy()
+        request_kwargs.update(kwargs)
+        session = await self.set_session()
+        async with session.put(url, data=value, **request_kwargs) as r:
+            r.raise_for_status()
 
     async def _mv(self, path1, path2, **kwargs):
         """
