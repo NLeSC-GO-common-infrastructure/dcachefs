@@ -5,6 +5,19 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+
+[Unreleased]
+
+Added
+-----
+* added request_kwargs to provide specific arguments to request calls
+* added pipe_file method to dCacheFileSystem, which enables the usage in fsspec.get_mapper 
+
+Fixed
+-----
+* Fixed naming collision that prevented timeout to be set on ClientSessions or requests
+
+
 [0.1.4]
 
 Added

@@ -198,6 +198,18 @@ def test_put(test_fs):
     assert test_fs.cat(remote_path) == bytes(_file_content, 'utf-8')
 
 
+def test_pipe_with_path_and_value(test_fs):
+    remote_path = '/test/testdir_2/file_uploaded.txt'
+    test_fs.pipe(path=remote_path, value=_file_content)
+    assert test_fs.cat(remote_path) == bytes(_file_content, 'utf-8')
+
+
+def test_pipe_with_dict(test_fs):
+    remote_path = '/test/testdir_2/file_uploaded.txt'
+    test_fs.pipe(path={remote_path: _file_content})
+    assert test_fs.cat(remote_path) == bytes(_file_content, 'utf-8')
+
+
 def test_read_remote_file(test_fs):
     # the default mode is binary, caching `block_size` bytes retrieved with a
     # single get request
