@@ -8,6 +8,8 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 [Unreleased]
 
+[0.1.5]
+
 Added
 -----
 * added request_kwargs to provide specific arguments to request calls
