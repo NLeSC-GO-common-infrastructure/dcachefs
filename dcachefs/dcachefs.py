@@ -250,8 +250,8 @@ class dCacheFileSystem(AsyncFileSystem):
         :param limit: (int, optional) set the maximum number of children paths
             returned to this value
         :param kwargs: (dict, optional) arguments passed on to requests
-        :return: (list) if detail is True, list of dictionaries. List of strings
-            otherwise
+        :return: (list) if detail is True, list of dictionaries. List of
+            strings otherwise
         """
         path = self._strip_protocol(path)
 
