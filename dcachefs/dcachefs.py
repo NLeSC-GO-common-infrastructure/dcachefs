@@ -25,7 +25,7 @@ def _get_details(path, data):
 
     :param path: (str) file or directory path
     :param data: (dict) metadata as provided by the API
-    :return (dict) parsed metadata
+    :return: (dict) parsed metadata
     """
     path = URL(path)
 
@@ -177,10 +177,10 @@ class dCacheFileSystem(AsyncFileSystem):
     @classmethod
     def _strip_protocol(cls, path):
         """
-        Turn path from fully-qualified to file-system-specific
+        Turn path from fully-qualified to file-system-specific.
 
         :param path: (str or list) target path(s)
-        :return (str or list) target path(s) stripped from protocol and WebDAV
+        :return: (str or list) target path(s) stripped from protocol and WebDAV
             door
         """
         if isinstance(path, list):
@@ -191,10 +191,10 @@ class dCacheFileSystem(AsyncFileSystem):
     @classmethod
     def _get_kwargs_from_urls(cls, path):
         """
-        Extract keyword arguments encoded in the urlpath
+        Extract keyword arguments encoded in the urlpath.
 
         :param path: (str) target path
-        :return (dict) arguments include the WebDAV door URL, if part of the
+        :return: (dict) arguments include the WebDAV door URL, if part of the
             input target path
         """
         webdav_url = cls._get_webdav_url(path)
@@ -203,11 +203,11 @@ class dCacheFileSystem(AsyncFileSystem):
     @classmethod
     def _get_webdav_url(cls, path):
         """
-        Extract WebDAV access point from the urlpath(s)
+        Extract WebDAV access point from the urlpath(s).
 
         :param path: (str or list) target path(s). If list, extract the URL
             from the first element
-        :return (str) WebDAV door URL
+        :return: (str) WebDAV door URL
         """
         if isinstance(path, list):
             return cls._get_webdav_url(path[0])
@@ -216,7 +216,7 @@ class dCacheFileSystem(AsyncFileSystem):
 
     async def _get_info(self, path, children=False, limit=None, **kwargs):
         """
-        Request file or directory metadata to the API
+        Request file or directory metadata to the API.
 
         :param path: (str) target path
         :param children: (bool, optional) if True, return metadata of the
@@ -224,7 +224,7 @@ class dCacheFileSystem(AsyncFileSystem):
         :param limit: (int, optional) if provided and children is True, set
             limit to the number of children returned
         :param kwargs: (dict, optional) arguments passed on to requests
-        :return (dict) path metadata
+        :return: (dict) path metadata
         """
         url = URL(self.api_url) / 'namespace' / _encode(path)
         url = url.with_query(children=children)
@@ -242,7 +242,7 @@ class dCacheFileSystem(AsyncFileSystem):
 
     async def _ls(self, path, detail=True, limit=None, **kwargs):
         """
-        List path content
+        List path content.
 
         :param path: (str) target path (file or directory)
         :param detail: (bool, optional) if True, return a list of dictionaries
@@ -250,7 +250,7 @@ class dCacheFileSystem(AsyncFileSystem):
         :param limit: (int, optional) set the maximum number of children paths
             returned to this value
         :param kwargs: (dict, optional) arguments passed on to requests
-        :return (list) if detail is True, list of dictionaries. List of strings
+        :return: (list) if detail is True, list of dictionaries. List of strings
             otherwise
         """
         path = self._strip_protocol(path)
@@ -277,7 +277,7 @@ class dCacheFileSystem(AsyncFileSystem):
 
     async def _cat_file(self, path, start=None, end=None, **kwargs):
         """
-        Get the content of a file
+        Get the content of a file.
 
         :param path: (str) target file path
         :param start: (int, optional) First byte for file read using range
@@ -308,7 +308,7 @@ class dCacheFileSystem(AsyncFileSystem):
 
     async def _get_file(self, rpath, lpath, chunk_size=5*2**20, **kwargs):
         """
-        Copy file to local
+        Copy file to local.
 
         :param rpath: (str) remote target file path
         :param lpath: (str) local file path where to copy the target file
@@ -336,7 +336,7 @@ class dCacheFileSystem(AsyncFileSystem):
 
     async def _put_file(self, lpath, rpath, **kwargs):
         """
-        Copy file from local
+        Copy file from local.
 
         :param rpath: (str) local target file path
         :param lpath: (str) remote file path where to copy the target file
@@ -359,7 +359,7 @@ class dCacheFileSystem(AsyncFileSystem):
 
     async def _pipe_file(self, path, value, **kwargs):
         """
-        Write data into a remote file
+        Write data into a remote file.
 
         :param path: (str) target file path
         :param value: dict, list of tuples, bytes or file-like object to write
@@ -378,7 +378,7 @@ class dCacheFileSystem(AsyncFileSystem):
 
     async def _mv(self, path1, path2, **kwargs):
         """
-        Rename path1 to path2
+        Rename path1 to path2.
 
         :param path1: (str) source path
         :param path2: (str) destination path
@@ -403,7 +403,7 @@ class dCacheFileSystem(AsyncFileSystem):
 
     async def _rm_file(self, path, **kwargs):
         """
-        Remove file or directory (must be empty)
+        Remove file or directory (must be empty).
 
         :param path: (str) target path
         :param kwargs: (dict, optional) arguments passed on to requests
@@ -436,11 +436,11 @@ class dCacheFileSystem(AsyncFileSystem):
 
     async def _info(self, path, **kwargs):
         """
-        Give details about a file or a directory
+        Give details about a file or a directory.
 
         :param path: (str) target path
         :param kwargs: (dict, optional) arguments passed on to requests
-        :return (dict) path metadata
+        :return: (dict) path metadata
         """
         path = self._strip_protocol(path)
         info = await self._get_info(path, **kwargs)
@@ -450,19 +450,19 @@ class dCacheFileSystem(AsyncFileSystem):
 
     def created(self, path):
         """
-        Date and time in which the path was created
+        Date and time in which the path was created.
 
         :param path: (str) target path
-        :return (datetime.datetime) time of creation
+        :return: (datetime.datetime) time of creation
         """
         return self.info(path).get('created')
 
     def modified(self, path):
         """
-        Date and time in which the path was last modified
+        Date and time in which the path was last modified.
 
         :param path: (str) target path
-        :return (datetime.datetime) time of last modification
+        :return: (datetime.datetime) time of last modification
         """
         return self.info(path).get('modified')
 
@@ -475,7 +475,7 @@ class dCacheFileSystem(AsyncFileSystem):
         **kwargs
     ):
         """
-        Create a file-like object
+        Create a file-like object.
 
         :param path: (str) target file path
         :param mode: (string, optional) choose between "r", "rb", "w", and "wb"
@@ -485,7 +485,7 @@ class dCacheFileSystem(AsyncFileSystem):
         :param request_kwargs: (dict, optional) arguments passed on to requests
         :param kwargs: (dict, optional) keyword arguments passed on to the
             super-class
-        :return (dCacheFile or dCacheStreamFile) file-like object
+        :return: (dCacheFile or dCacheStreamFile) file-like object
         """
         if mode not in {"rb", "wb"}:
             raise NotImplementedError
@@ -525,13 +525,13 @@ class dCacheFileSystem(AsyncFileSystem):
         **kwargs
     ):
         """
-        Return a file-like object from the filesystem
+        Return a file-like object from the filesystem.
 
         :param path: (str) target file path
         :param mode: (str, optional) choose between "r", "rb", "w", and "wb"
         :param kwargs: (dict, optional) keyword arguments passed on to the
             super-class
-        :return (dCacheFile or dCacheStreamFile) file-like object
+        :return: (dCacheFile or dCacheStreamFile) file-like object
         """
         self.webdav_url = self._get_webdav_url(path) or self.webdav_url
         return super().open(
@@ -596,7 +596,7 @@ class dCacheFile(HTTPFile):
         """
         Write buffered data to remote file. Since byte-range writing is not
         supported, the file content is only written when `force` is True (i.e.
-        when the file-like object is closed)
+        when the file-like object is closed).
 
         :param force: (bool, optional) Force writing of the remote file.
             Disallows further writing to this file.
@@ -706,11 +706,11 @@ class dCacheStreamFile(HTTPStreamFile):
 
     def read(self, num=-1):
         """
-        Read bytes from file
+        Read bytes from file.
 
         :param num: (int, optional) Read up this many bytes. If negative, read
             all content to end of file.
-        :return bytes read from the target file
+        :return: bytes read from the target file
         """
         if self.mode != "rb":
             raise ValueError("File not in read mode")
