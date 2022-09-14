@@ -8,6 +8,20 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 [Unreleased]
 
+[0.1.6]
+
+Added
+-----
+* added abstract to CITATION.cff
+* included README file in documentation
+* improved description in README file
+
+Changed
+-------
+* updated .zenodo.json
+* updated notebook for documentation
+
+
 [0.1.5]
 
 Added
