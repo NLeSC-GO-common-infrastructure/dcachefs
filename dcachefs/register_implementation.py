@@ -7,10 +7,10 @@ from .dcachefs import dCacheFileSystem
 @contextlib.contextmanager
 def register_implementation(protocol='https'):
     """
-    Register dCacheFileSystem as fsspec backend
+    Register dCacheFileSystem as fsspec backend.
 
     :param protocol: (str) URLs with this protocol will be open using
-        dCacheFileSystem from fsspec
+        dCacheFileSystem by fsspec
     """
     fsspec.register_implementation(protocol, dCacheFileSystem, clobber=True)
     try:

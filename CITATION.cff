@@ -1,7 +1,8 @@
 # YAML 1.2
 ---
 cff-version: "1.1.0"
-title: "dCacheFS"
+title: "dCacheFS: a `fsspec`-compatible file-system interface for dCache"
+abstract: "dCacheFS provides a file-system interface for the dCache storage system. It builds on the Filesystem Spec library and it can be used as an independent library or via the more general `fsspec` functions."
 authors:
   -
     affiliation: "Netherlands eScience Center"
@@ -14,6 +15,7 @@ version: "0.1.5"
 repository-code: "https://github.com/NLeSC-GO-common-infrastructure/dcachefs"
 keywords:
   - "dCache"
-  - "Filesystem SPEC"
+  - "Filesystem Spec"
 message: "If you use this software, please cite it using these metadata."
 license: "Apache-2.0"
+...
