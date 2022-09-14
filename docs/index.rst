@@ -4,19 +4,11 @@
    contain the root `toctree` directive.
 
 Welcome to dCacheFS's documentation!
-==========================================================
-
-dCacheFS is a Python file-system interface for dCache.
-
-The code is hosted on `GitHub`_. If you want to contribute to the development of dCacheFS,
-have a look at the  `contribution guidelines`_.
-
-.. _GitHub: https://github.com/NLeSC-GO-common-infrastructure/dcachefs
-.. _contribution guidelines: https://github.com/NLeSC-GO-common-infrastructure/dcachefs/tree/master/CONTRIBUTING.md
-
+====================================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
 
-   notebooks/examples
+   readme
+   notebooks/user_manual

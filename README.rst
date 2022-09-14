@@ -52,8 +52,13 @@
 dCacheFS
 ################################################################################
 
-Python filesystem interface for dCache based on and integrated with 
-`Filesystem Spec <https://github.com/fsspec/filesystem_spec>`_.
+dCacheFS provides a file-system interface for a `dCache storage system`_, such as the `instance provided at SURF`_. 
+dCacheFS builds on the `Filesystem Spec`_ (`fsspec`) library and it can be used as an independent library or via the 
+more general `fsspec` functions.
+
+.. _dCache storage system: https://www.dcache.org
+.. _instance provided at SURF: http://doc.grid.surfsara.nl/en/stable/Pages/Service/system_specifications/dcache_specs.html
+.. _Filesystem Spec: https://filesystem-spec.readthedocs.io
 
 Installation
 ------------
@@ -82,20 +87,20 @@ Run tests (including coverage) with:
 
 
 Documentation
-*************
+-------------
 
 The project's full documentation can be found `here`_.
 
 .. _here: https://dcachefs.readthedocs.io
 
 Contributing
-************
+------------
 
 If you want to contribute to the development of dCacheFS,
 have a look at the `contribution guidelines <CONTRIBUTING.rst>`_.
 
 License
-*******
+-------
 
 Copyright (c) 2020, Netherlands eScience Center
 
@@ -114,6 +119,6 @@ limitations under the License.
 
 
 Credits
-*******
+-------
 
 This package was created with `Cookiecutter <https://github.com/audreyr/cookiecutter>`_ and the `NLeSC/python-template <https://github.com/NLeSC/python-template>`_.
