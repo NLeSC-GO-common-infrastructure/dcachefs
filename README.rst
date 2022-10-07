@@ -18,6 +18,8 @@
      -
    * - Continuous integration
      - |Python Build| |PyPI Publish|
+   * - Documentation
+     - |Read the Docs|
 
 
 .. |GitHub Badge| image:: https://img.shields.io/badge/github-repo-000.svg?logo=github&labelColor=gray&color=blue
@@ -47,6 +49,10 @@
 .. |PyPI Publish| image:: https://github.com/NLeSC-GO-common-infrastructure/dcachefs/workflows/Publish/badge.svg
    :target: https://github.com/NLeSC-GO-common-infrastructure/dcachefs/actions?query=workflow%3A%22Publish%22
    :alt: PyPI Publish
+
+.. |Read the Docs| image:: https://readthedocs.org/projects/dcachefs/badge/?version=latest
+   :target: https://dcachefs.readthedocs.io
+   :alt: Read the Docs
 
 ################################################################################
 dCacheFS
