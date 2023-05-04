@@ -1,0 +1,23 @@
+name: dcachefs
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  # dcachefs dependencies
+  - aiohttp
+  - fsspec
+  - urlpath
+  - yarl
+  # tutorial/optional 
+  - jupyterlab
+  - dask
+  - numpy 
+  - pandas
+  - xarray
+  - zarr
+  - panel
+  # test dependencies
+  - pytest
+  - pytest-cov
+  - pycodestyle
+  - webdavclient3 

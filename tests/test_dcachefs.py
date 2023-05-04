@@ -35,6 +35,7 @@ def test_fs():
     api_url = os.environ['DCACHE_API_URL']
     webdav_url = os.environ['DCACHE_WEBDAV_URL']
     token = os.environ['DCACHE_TOKEN']
+    print(token)
     _setup_test_dir(webdav_url, token)
     return dCacheFileSystem(api_url=api_url,
                             token=token,
