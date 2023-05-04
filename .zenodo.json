@@ -14,7 +14,7 @@
   "license": {
     "id": "Apache-2.0"
   },
-  "publication_date": "2022-09-14",
+  "publication_date": "2023-05-04",
   "title": "dCacheFS: a `fsspec`-compatible file-system interface for dCache",
-  "version": "0.1.6"
+  "version": "0.1.7"
 }

@@ -8,6 +8,23 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 [Unreleased]
 
+[0.1.7]
+
+Added
+-----
+
+* fsspec GUI via panel now tested
+
+Changed
+-------
+
+* register_implementation is no longer supported (use only "dcache" protocol)
+
+Fixed
+-----
+
+* implements encode_url to solve compatibility issue with HTTPFileSystem
+
 [0.1.6]
 
 Added
