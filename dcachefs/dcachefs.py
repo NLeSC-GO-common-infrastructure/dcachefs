@@ -2,6 +2,7 @@ import aiohttp
 import asyncio
 import logging
 import weakref
+import yarl
 
 from datetime import datetime
 from fsspec.asyn import sync_wrapper, sync, AsyncFileSystem
@@ -78,6 +79,7 @@ class dCacheFileSystem(AsyncFileSystem):
     :param loop: (optional) if asynchronous, event loop where to run coroutines
     :param batch_size: (int, optional) if asynchronous, number of coroutines to
         submit/wait on simultaneously
+    :param encoded: use encoded strings when formatting URLs
     :param storage_options: (dict, optional) keyword arguments passed on to the
         super-class
     """
@@ -95,6 +97,7 @@ class dCacheFileSystem(AsyncFileSystem):
         asynchronous=False,
         loop=None,
         batch_size=None,
+        encoded=True,
         **storage_options
     ):
         super().__init__(
@@ -108,6 +111,7 @@ class dCacheFileSystem(AsyncFileSystem):
         self.webdav_url = webdav_url
         self.client_kwargs = {} if client_kwargs is None else client_kwargs
         self.request_kwargs = {} if request_kwargs is None else request_kwargs
+        self.encoded = encoded
         if (username is None) ^ (password is None):
             raise ValueError('Username or password not provided')
         if (username is not None) and (password is not None):
@@ -138,6 +142,9 @@ class dCacheFileSystem(AsyncFileSystem):
         if connector is not None:
             # close after loop is dead
             connector._close()
+
+    def encode_url(self, url):
+        return yarl.URL(url, encoded=self.encoded)
 
     async def set_session(self):
         if self._session is None:
