@@ -186,7 +186,7 @@ class dCacheFileSystem(AsyncFileSystem):
         if isinstance(path, list):
             return [cls._strip_protocol(p) for p in path]
         url = URL(path)
-        return url.path if "http" in url.scheme else path.split(":/")[-1]
+        return url.path if "http" in url.scheme else path.split("://")[-1]
 
     @classmethod
     def _get_kwargs_from_urls(cls, path):
