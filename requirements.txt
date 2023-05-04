@@ -1,3 +1,4 @@
 aiohttp
 fsspec
 urlpath
+yarl
